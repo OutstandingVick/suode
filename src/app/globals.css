@@ -305,6 +305,13 @@ button { cursor: pointer; }
 .standing-grid p { color: var(--muted); font-size: 9px; }
 .standing-grid code { color: #47705a; font-size: 9px; letter-spacing: .1em; }
 .research-empty { color: var(--muted); font-size: 10px; }
+.insight-list { display: grid; gap: 7px; margin-bottom: 16px; }
+.insight-list article { border-left: 3px solid #a6b1aa; border-radius: 0 9px 9px 0; padding: 8px 11px; }
+.insight-list article.positive { background: #eff8e9; border-color: #72ad4d; }
+.insight-list article.caution { background: #fff5e4; border-color: #d9a54d; }
+.insight-list article.neutral { background: #f3f5f3; }
+.insight-list span { color: var(--muted); font-size: 7px; font-weight: 900; text-transform: uppercase; }
+.insight-list p { font-size: 10px; margin: 3px 0 0; }
 .research-subheading { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 17px; }
 .research-subheading h3 { font-size: 14px; margin: 5px 0 12px; }
 .injury-list { display: grid; gap: 7px; grid-template-columns: repeat(2,1fr); }

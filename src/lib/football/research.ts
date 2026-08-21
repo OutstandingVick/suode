@@ -17,10 +17,17 @@ export type DeepResearchResponse = {
   injuries: InjuryEvidence[];
   lineups: LineupEvidence[];
   venuePerformance: VenuePerformanceEvidence[];
+  insights: ResearchInsight[];
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;
   };
+};
+
+export type ResearchInsight = {
+  label: string;
+  text: string;
+  tone: "positive" | "caution" | "neutral";
 };
 
 export type VenuePerformanceEvidence = {

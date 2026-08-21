@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DeepResearchResponse, InjuryEvidence, LineupEvidence, StandingEvidence, VenuePerformanceEvidence } from "@/lib/football/research";
+import type { DeepResearchResponse, InjuryEvidence, LineupEvidence, ResearchInsight, StandingEvidence, VenuePerformanceEvidence } from "@/lib/football/research";
 import { apiFootballGet } from "@/lib/server/api-football";
 import { getPrediction } from "@/lib/server/predictions";
 
@@ -74,21 +74,67 @@ export async function getDeepResearch(fixtureId: number): Promise<DeepResearchRe
   ]);
   const rows = standingResult.data.flatMap((entry) => entry.league.standings.flat());
   const teamIds = new Set([prediction.teams.home.id, prediction.teams.away.id]);
+  const standings = rows.filter((row) => teamIds.has(row.team.id)).map(toStandingEvidence);
+  const injuries = injuryResult.data.map(toInjuryEvidence);
+  const lineups = lineupResult.data.map(toLineupEvidence);
+  const venuePerformance = [
+    toVenuePerformance(homeStatsResult.data, "home"),
+    toVenuePerformance(awayStatsResult.data, "away"),
+  ];
 
   return {
     fixtureId,
-    standings: rows.filter((row) => teamIds.has(row.team.id)).map(toStandingEvidence),
-    injuries: injuryResult.data.map(toInjuryEvidence),
-    lineups: lineupResult.data.map(toLineupEvidence),
-    venuePerformance: [
-      toVenuePerformance(homeStatsResult.data, "home"),
-      toVenuePerformance(awayStatsResult.data, "away"),
-    ],
+    standings,
+    injuries,
+    lineups,
+    venuePerformance,
+    insights: buildInsights(standings, injuries, lineups, venuePerformance),
     quota: {
       dailyLimit: awayStatsResult.quota.dailyLimit ?? homeStatsResult.quota.dailyLimit ?? lineupResult.quota.dailyLimit,
       dailyRemaining: awayStatsResult.quota.dailyRemaining ?? homeStatsResult.quota.dailyRemaining ?? lineupResult.quota.dailyRemaining,
     },
   };
+}
+
+function buildInsights(
+  standings: StandingEvidence[],
+  injuries: InjuryEvidence[],
+  lineups: LineupEvidence[],
+  venue: VenuePerformanceEvidence[],
+): ResearchInsight[] {
+  const insights: ResearchInsight[] = [];
+  const ordered = [...standings].sort((a, b) => a.rank - b.rank);
+  if (ordered.length === 2) {
+    const gap = ordered[1].rank - ordered[0].rank;
+    insights.push({
+      label: "Table position",
+      text: gap === 0 ? "The teams are level in the table." : `${ordered[0].team} sit ${gap} place${gap === 1 ? "" : "s"} above ${ordered[1].team}.`,
+      tone: gap >= 5 ? "positive" : "neutral",
+    });
+  }
+
+  for (const record of venue) {
+    const games = Math.max(record.played, 1);
+    const winRate = Math.round((record.won / games) * 100);
+    insights.push({
+      label: `${record.venue === "home" ? "Home" : "Away"} record`,
+      text: `${record.team} have won ${winRate}% of their ${record.venue} league matches (${record.won} of ${record.played}).`,
+      tone: winRate >= 60 ? "positive" : winRate <= 30 ? "caution" : "neutral",
+    });
+  }
+
+  const injuriesByTeam = new Map<string, number>();
+  for (const injury of injuries) injuriesByTeam.set(injury.team, (injuriesByTeam.get(injury.team) ?? 0) + 1);
+  for (const [team, count] of injuriesByTeam) {
+    insights.push({ label: "Availability", text: `${team} have ${count} reported unavailable player${count === 1 ? "" : "s"}.`, tone: "caution" });
+  }
+
+  insights.push({
+    label: "Line-ups",
+    text: lineups.length >= 2 ? "Starting line-ups are available for both teams." : "At least one starting line-up is still unavailable.",
+    tone: lineups.length >= 2 ? "positive" : "neutral",
+  });
+  return insights;
 }
 
 function toVenuePerformance(stats: TeamStatistics, venue: "home" | "away"): VenuePerformanceEvidence {

@@ -28,6 +28,9 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
   return (
     <section className="deep-research-results">
       <div className="deep-heading"><div><span className="prediction-label">Deep research</span><h3>League standings</h3></div><small>{state.data.quota.dailyRemaining ?? "–"} API requests remaining</small></div>
+      <div className="insight-list">{state.data.insights.map((insight, index) => (
+        <article className={insight.tone} key={`${insight.label}-${index}`}><span>{insight.label}</span><p>{insight.text}</p></article>
+      ))}</div>
       {state.data.standings.length ? <div className="standing-grid">{state.data.standings.map((team) => (
         <article key={team.teamId}>
           <span>Position</span><strong>#{team.rank}</strong><h4>{team.team}</h4>
