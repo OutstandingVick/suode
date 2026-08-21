@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { PredictionResponse } from "@/lib/football/predictions";
+import { DeepResearchPanel } from "@/components/deep-research-panel";
 
 type PredictionState =
   | { kind: "loading" }
@@ -118,6 +119,8 @@ export function PredictionPanel({ fixtureId }: { fixtureId: number }) {
         <strong>Use predictions responsibly</strong>
         <p>These are statistical estimates supplied by API-Football, not guaranteed outcomes or financial advice. Team news, line-ups, conditions, and late changes may not be reflected. Review the evidence and never stake more than you can afford to lose.</p>
       </aside>
+
+      <DeepResearchPanel fixtureId={fixtureId} />
 
       {quota.dailyRemaining !== null ? <p className="prediction-quota">API quota remaining: {quota.dailyRemaining}{quota.dailyLimit !== null ? ` / ${quota.dailyLimit}` : ""} · Cached for 30 minutes</p> : null}
     </div>
