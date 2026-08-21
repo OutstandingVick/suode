@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DeepResearchResponse, InjuryEvidence, StandingEvidence } from "@/lib/football/research";
+import type { DeepResearchResponse, InjuryEvidence, LineupEvidence, StandingEvidence } from "@/lib/football/research";
 import { apiFootballGet } from "@/lib/server/api-football";
 import { getPrediction } from "@/lib/server/predictions";
 
@@ -18,13 +18,19 @@ type InjuryRow = {
   team: { id: number; name: string };
   player: { id: number; name: string; type: string; reason: string };
 };
+type LineupRow = {
+  team: { id: number; name: string };
+  formation: string | null;
+  coach: { name: string | null };
+  startXI: Array<{ player: { id: number; name: string; number: number | null; pos: string } }>;
+};
 
 const RESEARCH_CACHE_SECONDS = 3600;
 
 export async function getDeepResearch(fixtureId: number): Promise<DeepResearchResponse> {
   const predictionResult = await getPrediction(fixtureId);
   const { prediction } = predictionResult;
-  const [standingResult, injuryResult] = await Promise.all([
+  const [standingResult, injuryResult, lineupResult] = await Promise.all([
     apiFootballGet<StandingLeague[]>(
       "standings",
       { league: prediction.league.id, season: prediction.league.season },
@@ -32,6 +38,11 @@ export async function getDeepResearch(fixtureId: number): Promise<DeepResearchRe
     ),
     apiFootballGet<InjuryRow[]>(
       "injuries",
+      { fixture: fixtureId },
+      { cacheSeconds: RESEARCH_CACHE_SECONDS },
+    ),
+    apiFootballGet<LineupRow[]>(
+      "fixtures/lineups",
       { fixture: fixtureId },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
     ),
@@ -43,10 +54,26 @@ export async function getDeepResearch(fixtureId: number): Promise<DeepResearchRe
     fixtureId,
     standings: rows.filter((row) => teamIds.has(row.team.id)).map(toStandingEvidence),
     injuries: injuryResult.data.map(toInjuryEvidence),
+    lineups: lineupResult.data.map(toLineupEvidence),
     quota: {
-      dailyLimit: injuryResult.quota.dailyLimit ?? standingResult.quota.dailyLimit,
-      dailyRemaining: injuryResult.quota.dailyRemaining ?? standingResult.quota.dailyRemaining,
+      dailyLimit: lineupResult.quota.dailyLimit ?? injuryResult.quota.dailyLimit ?? standingResult.quota.dailyLimit,
+      dailyRemaining: lineupResult.quota.dailyRemaining ?? injuryResult.quota.dailyRemaining ?? standingResult.quota.dailyRemaining,
     },
+  };
+}
+
+function toLineupEvidence(row: LineupRow): LineupEvidence {
+  return {
+    teamId: row.team.id,
+    team: row.team.name,
+    formation: row.formation,
+    coach: row.coach?.name ?? null,
+    startingEleven: row.startXI.map(({ player }) => ({
+      playerId: player.id,
+      name: player.name,
+      position: player.pos,
+      number: player.number,
+    })),
   };
 }
 

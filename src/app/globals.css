@@ -312,6 +312,14 @@ button { cursor: pointer; }
 .injury-list strong { font-size: 11px; }
 .injury-list span { color: var(--muted); font-size: 9px; }
 .injury-list small { color: #9a5b46; font-size: 8px; }
+.lineup-grid { display: grid; gap: 10px; grid-template-columns: repeat(2,1fr); }
+.lineup-grid article { background: #f4f7f4; border-radius: 12px; padding: 13px; }
+.lineup-grid h4 { font-size: 12px; margin: 0 0 4px; }
+.lineup-grid article > div > span { color: var(--muted); font-size: 8px; }
+.lineup-grid ol { display: flex; flex-direction: column; gap: 6px; list-style: none; margin: 13px 0 0; padding: 0; }
+.lineup-grid li { align-items: center; border-top: 1px solid #e2e8e3; display: grid; font-size: 9px; gap: 7px; grid-template-columns: 18px 1fr auto; padding-top: 6px; }
+.lineup-grid li b { color: #52805e; }
+.lineup-grid li small { color: var(--muted); font-size: 7px; }
 
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

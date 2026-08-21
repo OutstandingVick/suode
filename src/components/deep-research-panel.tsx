@@ -21,7 +21,7 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
     }
   }
 
-  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 2 extra requests</small></button>;
+  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 3 extra requests</small></button>;
   if (state.kind === "loading") return <div className="deep-research-state" role="status">Loading standings and availability…</div>;
   if (state.kind === "error") return <div className="deep-research-state error" role="alert"><span>{state.message}</span><button type="button" onClick={loadResearch}>Try again</button></div>;
 
@@ -39,6 +39,13 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
       {state.data.injuries.length ? <div className="injury-list">{state.data.injuries.map((injury) => (
         <div key={`${injury.teamId}-${injury.playerId}`}><strong>{injury.player}</strong><span>{injury.team}</span><small>{injury.type}: {injury.reason}</small></div>
       ))}</div> : <p className="research-empty">No injuries or absences were supplied for this fixture.</p>}
+      <div className="research-subheading"><span className="prediction-label">Team selection</span><h3>Line-ups</h3></div>
+      {state.data.lineups.length ? <div className="lineup-grid">{state.data.lineups.map((lineup) => (
+        <article key={lineup.teamId}>
+          <div><h4>{lineup.team}</h4><span>{lineup.formation ?? "Formation TBC"} · {lineup.coach ?? "Coach unavailable"}</span></div>
+          <ol>{lineup.startingEleven.map((player) => <li key={player.playerId}><b>{player.number ?? "–"}</b><span>{player.name}</span><small>{player.position}</small></li>)}</ol>
+        </article>
+      ))}</div> : <p className="research-empty">Line-ups have not been announced for this fixture.</p>}
     </section>
   );
 }
