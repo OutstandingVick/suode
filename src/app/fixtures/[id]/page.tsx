@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PredictionPanel } from "@/components/prediction-panel";
+
 function queryValue(value: string | string[] | undefined, fallback: string): string {
   return typeof value === "string" && value.trim() ? value : fallback;
 }
@@ -28,11 +30,7 @@ export default async function FixturePage({ params, searchParams }: PageProps<"/
           <h1>{away}</h1>
         </div>
       </section>
-      <section className="prediction-placeholder">
-        <span>Prediction workspace</span>
-        <h2>Match research will appear here</h2>
-        <p>This match page is ready for API-Football predictions and supporting evidence.</p>
-      </section>
+      <PredictionPanel fixtureId={Number(id)} />
     </main>
   );
 }
