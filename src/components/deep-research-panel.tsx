@@ -21,7 +21,7 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
     }
   }
 
-  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 3 extra requests</small></button>;
+  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 5 extra requests</small></button>;
   if (state.kind === "loading") return <div className="deep-research-state" role="status">Loading standings and availability…</div>;
   if (state.kind === "error") return <div className="deep-research-state error" role="alert"><span>{state.message}</span><button type="button" onClick={loadResearch}>Try again</button></div>;
 
@@ -46,6 +46,15 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
           <ol>{lineup.startingEleven.map((player) => <li key={player.playerId}><b>{player.number ?? "–"}</b><span>{player.name}</span><small>{player.position}</small></li>)}</ol>
         </article>
       ))}</div> : <p className="research-empty">Line-ups have not been announced for this fixture.</p>}
+      <div className="research-subheading"><span className="prediction-label">Venue split</span><h3>Home and away performance</h3></div>
+      <div className="venue-grid">{state.data.venuePerformance.map((record) => (
+        <article key={`${record.teamId}-${record.venue}`}>
+          <span>{record.venue} record</span><h4>{record.team}</h4>
+          <strong>{record.won}W · {record.drawn}D · {record.lost}L</strong>
+          <p>{record.played} played · {record.goalsForAverage ?? "–"} scored/game · {record.goalsAgainstAverage ?? "–"} conceded/game</p>
+          <small>{record.cleanSheets} clean sheets · failed to score {record.failedToScore} times</small>
+        </article>
+      ))}</div>
     </section>
   );
 }

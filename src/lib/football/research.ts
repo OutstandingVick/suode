@@ -16,10 +16,25 @@ export type DeepResearchResponse = {
   standings: StandingEvidence[];
   injuries: InjuryEvidence[];
   lineups: LineupEvidence[];
+  venuePerformance: VenuePerformanceEvidence[];
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;
   };
+};
+
+export type VenuePerformanceEvidence = {
+  teamId: number;
+  team: string;
+  venue: "home" | "away";
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsForAverage: string | null;
+  goalsAgainstAverage: string | null;
+  cleanSheets: number;
+  failedToScore: number;
 };
 
 export type LineupEvidence = {
