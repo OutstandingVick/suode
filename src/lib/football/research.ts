@@ -14,8 +14,18 @@ export type StandingEvidence = {
 export type DeepResearchResponse = {
   fixtureId: number;
   standings: StandingEvidence[];
+  injuries: InjuryEvidence[];
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;
   };
+};
+
+export type InjuryEvidence = {
+  teamId: number;
+  team: string;
+  playerId: number;
+  player: string;
+  type: string;
+  reason: string;
 };

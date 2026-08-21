@@ -305,6 +305,13 @@ button { cursor: pointer; }
 .standing-grid p { color: var(--muted); font-size: 9px; }
 .standing-grid code { color: #47705a; font-size: 9px; letter-spacing: .1em; }
 .research-empty { color: var(--muted); font-size: 10px; }
+.research-subheading { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 17px; }
+.research-subheading h3 { font-size: 14px; margin: 5px 0 12px; }
+.injury-list { display: grid; gap: 7px; grid-template-columns: repeat(2,1fr); }
+.injury-list div { background: #fff3ef; border-radius: 10px; display: grid; gap: 4px; padding: 11px; }
+.injury-list strong { font-size: 11px; }
+.injury-list span { color: var(--muted); font-size: 9px; }
+.injury-list small { color: #9a5b46; font-size: 8px; }
 
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

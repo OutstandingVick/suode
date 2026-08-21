@@ -21,8 +21,8 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
     }
   }
 
-  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 1 extra request</small></button>;
-  if (state.kind === "loading") return <div className="deep-research-state" role="status">Loading standings…</div>;
+  if (state.kind === "idle") return <button className="deep-research-button" type="button" onClick={loadResearch}>Run deep research <small>about 2 extra requests</small></button>;
+  if (state.kind === "loading") return <div className="deep-research-state" role="status">Loading standings and availability…</div>;
   if (state.kind === "error") return <div className="deep-research-state error" role="alert"><span>{state.message}</span><button type="button" onClick={loadResearch}>Try again</button></div>;
 
   return (
@@ -35,6 +35,10 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
           <code>{team.form ?? "Form unavailable"}</code>
         </article>
       ))}</div> : <p className="research-empty">Standings are unavailable for this competition.</p>}
+      <div className="research-subheading"><span className="prediction-label">Availability</span><h3>Injuries and absences</h3></div>
+      {state.data.injuries.length ? <div className="injury-list">{state.data.injuries.map((injury) => (
+        <div key={`${injury.teamId}-${injury.playerId}`}><strong>{injury.player}</strong><span>{injury.team}</span><small>{injury.type}: {injury.reason}</small></div>
+      ))}</div> : <p className="research-empty">No injuries or absences were supplied for this fixture.</p>}
     </section>
   );
 }
