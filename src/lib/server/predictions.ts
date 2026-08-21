@@ -8,8 +8,14 @@ import type {
 } from "@/lib/football/predictions";
 import { apiFootballGet } from "@/lib/server/api-football";
 
+export const PREDICTION_CACHE_SECONDS = 1800;
+
 export async function getPrediction(fixtureId: number): Promise<PredictionResponse> {
-  const result = await apiFootballGet<Prediction[]>("predictions", { fixture: fixtureId });
+  const result = await apiFootballGet<Prediction[]>(
+    "predictions",
+    { fixture: fixtureId },
+    { cacheSeconds: PREDICTION_CACHE_SECONDS },
+  );
   const prediction = result.data[0];
 
   if (!prediction) {

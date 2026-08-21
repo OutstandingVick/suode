@@ -1,5 +1,5 @@
 import { ApiFootballError } from "@/lib/server/api-football";
-import { getPrediction } from "@/lib/server/predictions";
+import { getPrediction, PREDICTION_CACHE_SECONDS } from "@/lib/server/predictions";
 
 export async function GET(_request: Request, context: RouteContext<"/api/predictions/[id]">) {
   const { id } = await context.params;
@@ -10,7 +10,9 @@ export async function GET(_request: Request, context: RouteContext<"/api/predict
 
   try {
     return Response.json(await getPrediction(Number(id)), {
-      headers: { "Cache-Control": "no-store" },
+      headers: {
+        "Cache-Control": `private, max-age=${PREDICTION_CACHE_SECONDS}`,
+      },
     });
   } catch (error) {
     const status = error instanceof ApiFootballError && error.status === 429 ? 429 : 502;
