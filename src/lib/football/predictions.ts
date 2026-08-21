@@ -27,6 +27,7 @@ export type Prediction = {
     name: string;
     country: string;
     logo: string;
+    season: number;
   };
   teams: {
     home: PredictionTeam;
