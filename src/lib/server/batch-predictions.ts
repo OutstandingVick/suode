@@ -43,7 +43,15 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   const date = dateInAppTimezone();
   const cacheKey = `${date}:${count}:${normalizedQuery.toLowerCase()}`;
   const cached = batchCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) return { ...cached.response, cached: true };
+  const now = Date.now();
+  if (
+    cached
+    && cached.expiresAt > now
+    && cached.response.predictions.every((item) => new Date(item.kickoff).getTime() > now)
+  ) {
+    return { ...cached.response, cached: true };
+  }
+  if (cached) batchCache.delete(cacheKey);
 
   const fixtureResult = await getFixturesForDate(date);
   const candidates = fixtureResult.fixtures
@@ -85,6 +93,11 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   }
 
   predictions.sort((a, b) => b.strength - a.strength);
+  const generatedAt = Date.now();
+  const nextKickoff = predictions.length
+    ? Math.min(...predictions.map((item) => new Date(item.kickoff).getTime()))
+    : Number.POSITIVE_INFINITY;
+  const expiresAt = Math.min(generatedAt + BATCH_CACHE_MS, nextKickoff);
   const response: BatchPredictionResponse = {
     query: normalizedQuery,
     requested: count,
@@ -92,6 +105,8 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
     unavailable,
     predictions,
     cached: false,
+    generatedAt: new Date(generatedAt).toISOString(),
+    freshUntil: new Date(expiresAt).toISOString(),
     quota: { dailyLimit, dailyRemaining },
     warning: capped
       ? `Suode limits one batch to ${MAX_PREDICTIONS} matches to protect the free API quota.`
@@ -99,6 +114,6 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
         ? `Only ${predictions.length} of ${count} requested predictions were available within the ${MAX_ATTEMPTS}-fixture safety limit.`
         : null,
   };
-  batchCache.set(cacheKey, { expiresAt: Date.now() + BATCH_CACHE_MS, response });
+  batchCache.set(cacheKey, { expiresAt, response });
   return response;
 }

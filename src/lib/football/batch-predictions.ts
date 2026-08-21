@@ -18,6 +18,8 @@ export type BatchPredictionResponse = {
   unavailable: number;
   predictions: BatchPredictionItem[];
   cached: boolean;
+  generatedAt: string;
+  freshUntil: string;
   quota: { dailyLimit: number | null; dailyRemaining: number | null };
   warning: string | null;
 };
