@@ -5,7 +5,8 @@ import type { Fixture } from "@/lib/football/fixtures";
 import { dateInAppTimezone, getFixturesForDate } from "@/lib/server/fixtures";
 import { getPrediction } from "@/lib/server/predictions";
 
-const MAX_PREDICTIONS = 5;
+const DEFAULT_PREDICTIONS = 5;
+const MAX_PREDICTIONS = 10;
 const MAX_ATTEMPTS = 10;
 const BATCH_CACHE_MS = 5 * 60 * 1000;
 const upcomingStatuses = new Set(["NS", "TBD"]);
@@ -13,9 +14,13 @@ const upcomingStatuses = new Set(["NS", "TBD"]);
 type CachedBatch = { expiresAt: number; response: BatchPredictionResponse };
 const batchCache = new Map<string, CachedBatch>();
 
-function requestedCount(query: string): number {
+function requestedCount(query: string): { count: number; capped: boolean } {
   const match = query.match(/\b(\d{1,2})\b/);
-  return Math.min(Math.max(match ? Number(match[1]) : MAX_PREDICTIONS, 1), MAX_PREDICTIONS);
+  const requested = match ? Number(match[1]) : DEFAULT_PREDICTIONS;
+  return {
+    count: Math.min(Math.max(requested, 1), MAX_PREDICTIONS),
+    capped: requested > MAX_PREDICTIONS,
+  };
 }
 
 function percentage(value: string): number {
@@ -34,7 +39,7 @@ export function isUpcomingFixture(fixture: Fixture, now = Date.now()): boolean {
 
 export async function getBatchPredictions(query: string): Promise<BatchPredictionResponse> {
   const normalizedQuery = query.trim().replace(/\s+/g, " ");
-  const count = requestedCount(normalizedQuery);
+  const { count, capped } = requestedCount(normalizedQuery);
   const date = dateInAppTimezone();
   const cacheKey = `${date}:${count}:${normalizedQuery.toLowerCase()}`;
   const cached = batchCache.get(cacheKey);
@@ -88,9 +93,11 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
     predictions,
     cached: false,
     quota: { dailyLimit, dailyRemaining },
-    warning: predictions.length < count
-      ? `Only ${predictions.length} of ${count} requested predictions were available within the ${MAX_ATTEMPTS}-fixture safety limit.`
-      : null,
+    warning: capped
+      ? `Suode limits one batch to ${MAX_PREDICTIONS} matches to protect the free API quota.`
+      : predictions.length < count
+        ? `Only ${predictions.length} of ${count} requested predictions were available within the ${MAX_ATTEMPTS}-fixture safety limit.`
+        : null,
   };
   batchCache.set(cacheKey, { expiresAt: Date.now() + BATCH_CACHE_MS, response });
   return response;

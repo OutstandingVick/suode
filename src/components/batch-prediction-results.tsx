@@ -14,7 +14,7 @@ export function BatchPredictionResults({ result }: { result: BatchPredictionResp
   return (
     <section className="batch-results" aria-live="polite">
       <div className="batch-heading">
-        <div><span className="section-kicker">Research results</span><h2>{result.predictions.length} ranked predictions</h2></div>
+        <div><span className="section-kicker">Research results</span><h2>{result.predictions.length} of {result.requested} requested predictions</h2></div>
         <div><strong>{result.quota.dailyRemaining ?? "–"}</strong><span>API requests left</span></div>
       </div>
       <p className="batch-meta">Checked {result.attempted} fixtures · {result.unavailable} unavailable · {result.cached ? "served from cache" : "cached for five minutes"}</p>
