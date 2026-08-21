@@ -230,8 +230,13 @@ button { cursor: pointer; }
 .fixture-status.live { border-color: #72bd37; }
 .fixture-status.finished { border-color: #819087; }
 .fixture-status strong { font-size: 10px; }
-.fixture-state { background: rgba(255,255,255,.8); border: 1px dashed #cdd7d0; border-radius: 14px; color: #718078; font-size: 12px; padding: 30px; text-align: center; }
+.fixture-state { align-items: center; background: rgba(255,255,255,.8); border: 1px dashed #cdd7d0; border-radius: 14px; color: #718078; display: flex; flex-direction: column; font-size: 12px; gap: 7px; padding: 30px; text-align: center; }
+.fixture-state strong { color: #45564c; font-size: 13px; }
 .fixture-state.error { background: #fff1ed; border-color: #e4b8aa; color: #9a4c39; }
+.fixture-state.error button { background: #9a4c39; border: 0; border-radius: 8px; color: white; font-size: 10px; font-weight: 800; margin-top: 5px; padding: 8px 12px; }
+.fixture-skeletons { display: flex; flex-direction: column; gap: 8px; }
+.fixture-skeletons span { animation: fixture-pulse 1.2s ease-in-out infinite alternate; background: linear-gradient(90deg,#e8ede9,#f5f7f5,#e8ede9); border: 1px solid var(--line); border-radius: 14px; display: block; height: 70px; }
+@keyframes fixture-pulse { from { opacity: .55; } to { opacity: 1; } }
 
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }

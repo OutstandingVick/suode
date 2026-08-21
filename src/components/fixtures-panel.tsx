@@ -45,6 +45,7 @@ export function FixturesPanel() {
   const [league, setLeague] = useState("all");
   const [status, setStatus] = useState("all");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,7 +65,12 @@ export function FixturesPanel() {
       });
 
     return () => controller.abort();
-  }, [date]);
+  }, [date, reloadToken]);
+
+  function retry() {
+    setState({ kind: "loading" });
+    setReloadToken((value) => value + 1);
+  }
 
   const fixtures = useMemo(() => state.kind === "ready" ? state.data.fixtures : [], [state]);
   const leagues = useMemo(() => {
@@ -92,9 +98,24 @@ export function FixturesPanel() {
         <label>Status<select value={status} onChange={(event) => setStatus(event.target.value)}>{statusGroups.map((group) => <option key={group.value} value={group.value}>{group.label}</option>)}</select></label>
       </div>
 
-      {state.kind === "loading" ? <div className="fixture-state" role="status">Loading fixtures…</div> : null}
-      {state.kind === "error" ? <div className="fixture-state error" role="alert">{state.message}</div> : null}
-      {state.kind === "ready" && filteredFixtures.length === 0 ? <div className="fixture-state">No matches match these filters.</div> : null}
+      {state.kind === "loading" ? (
+        <div className="fixture-skeletons" role="status" aria-label="Loading fixtures">
+          {[1, 2, 3].map((row) => <span key={row} />)}
+        </div>
+      ) : null}
+      {state.kind === "error" ? (
+        <div className="fixture-state error" role="alert">
+          <strong>Fixtures could not be loaded</strong>
+          <span>{state.message}</span>
+          <button type="button" onClick={retry}>Try again</button>
+        </div>
+      ) : null}
+      {state.kind === "ready" && filteredFixtures.length === 0 ? (
+        <div className="fixture-state">
+          <strong>No matching fixtures</strong>
+          <span>Try another date, league, or match status.</span>
+        </div>
+      ) : null}
       {state.kind === "ready" && filteredFixtures.length > 0 ? (
         <div className="fixtures-list">
           {filteredFixtures.map((item) => (
