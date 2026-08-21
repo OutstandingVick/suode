@@ -225,6 +225,8 @@ button { cursor: pointer; }
 .batch-card { background: white; border: 1px solid var(--line); border-radius: 16px; color: inherit; padding: 15px; text-decoration: none; transition: transform .16s ease,border-color .16s ease; }
 .batch-card:hover, .batch-card:focus-visible { border-color: #94b29e; outline: none; transform: translateY(-2px); }
 .batch-card-top { color: var(--muted); display: flex; font-size: 8px; justify-content: space-between; text-transform: uppercase; }
+.batch-card-top time { align-items: flex-end; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; }
+.batch-card-top time b { color: #496154; font-size: 8px; }
 .batch-card h3 { font-size: 12px; line-height: 1.5; margin: 13px 0; }
 .batch-card h3 small { color: var(--muted); font-weight: 400; margin: 0 3px; }
 .batch-pick { background: #eff7e9; border-radius: 10px; display: grid; gap: 4px; padding: 10px; }

@@ -8,7 +8,7 @@ import { getPrediction } from "@/lib/server/predictions";
 const MAX_PREDICTIONS = 5;
 const MAX_ATTEMPTS = 10;
 const BATCH_CACHE_MS = 5 * 60 * 1000;
-const completedStatuses = new Set(["FT", "AET", "PEN", "CANC", "PST", "ABD", "AWD", "WO"]);
+const upcomingStatuses = new Set(["NS", "TBD"]);
 
 type CachedBatch = { expiresAt: number; response: BatchPredictionResponse };
 const batchCache = new Map<string, CachedBatch>();
@@ -24,10 +24,12 @@ function percentage(value: string): number {
 }
 
 function candidateScore(fixture: Fixture): number {
-  const status = fixture.fixture.status.short;
-  if (["1H", "HT", "2H", "ET", "LIVE"].includes(status)) return 3;
-  if (["NS", "TBD"].includes(status)) return 2;
-  return 1;
+  return fixture.fixture.status.short === "NS" ? 2 : 1;
+}
+
+export function isUpcomingFixture(fixture: Fixture, now = Date.now()): boolean {
+  return upcomingStatuses.has(fixture.fixture.status.short)
+    && fixture.fixture.timestamp * 1000 > now;
 }
 
 export async function getBatchPredictions(query: string): Promise<BatchPredictionResponse> {
@@ -40,7 +42,9 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
 
   const fixtureResult = await getFixturesForDate(date);
   const candidates = fixtureResult.fixtures
-    .filter((fixture) => !completedStatuses.has(fixture.fixture.status.short))
+    // Some competitions have no live coverage and remain `NS` after kickoff.
+    // Timestamp validation prevents those stale statuses from entering a batch.
+    .filter((fixture) => isUpcomingFixture(fixture))
     .sort((a, b) => candidateScore(b) - candidateScore(a) || a.fixture.timestamp - b.fixture.timestamp)
     .slice(0, Math.min(MAX_ATTEMPTS, Math.max(count * 2, count)));
 
