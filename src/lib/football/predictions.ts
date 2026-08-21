@@ -43,10 +43,33 @@ export type Prediction = {
 export type PredictionResponse = {
   fixtureId: number;
   prediction: Prediction;
+  evidence: {
+    homeForm: TeamFormEvidence;
+    awayForm: TeamFormEvidence;
+    headToHead: HeadToHeadEvidence[];
+  };
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;
     minuteLimit: number | null;
     minuteRemaining: number | null;
   };
+};
+
+export type TeamFormEvidence = {
+  team: string;
+  form: string | null;
+  attack: string | null;
+  defence: string | null;
+  goalsForAverage: string | null;
+  goalsAgainstAverage: string | null;
+};
+
+export type HeadToHeadEvidence = {
+  fixtureId: number;
+  date: string;
+  home: string;
+  away: string;
+  homeGoals: number | null;
+  awayGoals: number | null;
 };
