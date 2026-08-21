@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import type { Fixture, FixturesResponse } from "@/lib/football/fixtures";
 
@@ -127,11 +128,23 @@ export function FixturesPanel() {
       {state.kind === "ready" && filteredFixtures.length > 0 ? (
         <div className="fixtures-list">
           {filteredFixtures.map((item) => (
-            <article className="fixture-row" key={item.fixture.id}>
+            <Link
+              className="fixture-row"
+              href={{
+                pathname: `/fixtures/${item.fixture.id}`,
+                query: {
+                  home: item.teams.home.name,
+                  away: item.teams.away.name,
+                  league: item.league.name,
+                  kickoff: item.fixture.date,
+                },
+              }}
+              key={item.fixture.id}
+            >
               <div className="fixture-meta"><strong>{item.league.name}</strong><span>{item.league.country} · {item.league.round}</span></div>
               <div className="fixture-teams"><span>{item.teams.home.name}</span><b>{item.goals.home ?? "–"} : {item.goals.away ?? "–"}</b><span>{item.teams.away.name}</span></div>
               <div className={`fixture-status ${statusGroup(item)}`}><strong>{fixtureTime(item.fixture.date)}</strong><span>{item.fixture.status.long}</span></div>
-            </article>
+            </Link>
           ))}
         </div>
       ) : null}
