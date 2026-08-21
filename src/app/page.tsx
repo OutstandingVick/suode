@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
+import { FixturesPanel } from "@/components/fixtures-panel";
+
 type IconName =
   | "research"
   | "fixtures"
@@ -26,39 +28,6 @@ const quickPrompts = [
   "Low-risk home picks",
   "Over 1.5 goals",
   "Avoid weak away form",
-];
-
-const signals = [
-  {
-    league: "Premier League",
-    time: "15:00",
-    home: "Aston Villa",
-    away: "Brighton",
-    market: "Over 1.5 goals",
-    confidence: 76,
-    form: "W W D W L",
-    tone: "positive",
-  },
-  {
-    league: "La Liga",
-    time: "17:30",
-    home: "Real Sociedad",
-    away: "Getafe",
-    market: "Home or draw",
-    confidence: 71,
-    form: "W D W L W",
-    tone: "positive",
-  },
-  {
-    league: "Serie A",
-    time: "19:45",
-    home: "Torino",
-    away: "Udinese",
-    market: "Under 3.5 goals",
-    confidence: 68,
-    form: "D W L D W",
-    tone: "watch",
-  },
 ];
 
 function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
@@ -171,45 +140,6 @@ function Sidebar() {
   );
 }
 
-function SignalCard({ signal }: { signal: (typeof signals)[number] }) {
-  return (
-    <article className="signal-card">
-      <div className="signal-topline">
-        <span>{signal.league}</span>
-        <time>{signal.time}</time>
-      </div>
-      <div className="teams">
-        <div className="team-row">
-          <span className="team-dot home">{signal.home.slice(0, 1)}</span>
-          <strong>{signal.home}</strong>
-        </div>
-        <div className="team-row">
-          <span className="team-dot away">{signal.away.slice(0, 1)}</span>
-          <strong>{signal.away}</strong>
-        </div>
-      </div>
-      <div className="signal-divider" />
-      <div className="selection-row">
-        <div>
-          <span className="eyebrow">Model signal</span>
-          <strong>{signal.market}</strong>
-        </div>
-        <div className={`confidence ${signal.tone}`}>
-          <span>{signal.confidence}%</span>
-          <small>confidence</small>
-        </div>
-      </div>
-      <div className="form-row">
-        <span>Recent form</span>
-        <code>{signal.form}</code>
-        <button aria-label={`View ${signal.home} versus ${signal.away}`}>
-          <Icon name="arrow" size={17} />
-        </button>
-      </div>
-    </article>
-  );
-}
-
 export default function Home() {
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
@@ -317,19 +247,7 @@ export default function Home() {
           {notice ? <p className="notice" role="status">{notice}</p> : null}
         </section>
 
-        <section className="signals-section">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">Preview data</span>
-              <h2>Today&apos;s strongest signals</h2>
-            </div>
-            <button className="text-button">View all fixtures <Icon name="arrow" size={16} /></button>
-          </div>
-          <div className="signals-grid">
-            {signals.map((signal) => <SignalCard key={`${signal.home}-${signal.away}`} signal={signal} />)}
-          </div>
-          <p className="preview-note">Preview values are interface samples. Live statistics and calculated probabilities arrive in Phase 2.</p>
-        </section>
+        <FixturesPanel />
       </main>
 
       <nav className="mobile-nav" aria-label="Mobile navigation">

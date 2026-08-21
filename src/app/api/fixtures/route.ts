@@ -1,9 +1,18 @@
 import { ApiFootballError } from "@/lib/server/api-football";
 import { dateInAppTimezone, getFixturesForDate } from "@/lib/server/fixtures";
 
-export async function GET() {
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export async function GET(request: Request) {
   try {
-    return Response.json(await getFixturesForDate(dateInAppTimezone()), {
+    const requestedDate = new URL(request.url).searchParams.get("date");
+    const date = requestedDate ?? dateInAppTimezone();
+
+    if (!DATE_PATTERN.test(date)) {
+      return Response.json({ error: "Date must use the YYYY-MM-DD format." }, { status: 400 });
+    }
+
+    return Response.json(await getFixturesForDate(date), {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
