@@ -114,6 +114,11 @@ export function PredictionPanel({ fixtureId }: { fixtureId: number }) {
         ) : <p>No recent meetings were supplied for these teams.</p>}
       </section>
 
+      <aside className="prediction-disclaimer" aria-label="Prediction limitations">
+        <strong>Use predictions responsibly</strong>
+        <p>These are statistical estimates supplied by API-Football, not guaranteed outcomes or financial advice. Team news, line-ups, conditions, and late changes may not be reflected. Review the evidence and never stake more than you can afford to lose.</p>
+      </aside>
+
       {quota.dailyRemaining !== null ? <p className="prediction-quota">API quota remaining: {quota.dailyRemaining}{quota.dailyLimit !== null ? ` / ${quota.dailyLimit}` : ""}</p> : null}
     </div>
   );

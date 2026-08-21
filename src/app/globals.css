@@ -285,6 +285,9 @@ button { cursor: pointer; }
 .h2h-list time { color: var(--muted); font-size: 8px; }
 .h2h-list span:last-child { text-align: right; }
 .prediction-quota { color: #87938c; font-size: 9px; margin: 0 2px; text-align: right; }
+.prediction-disclaimer { background: #fff7e5; border: 1px solid #ebd7a9; border-radius: 14px; color: #72591f; padding: 15px 17px; }
+.prediction-disclaimer strong { font-size: 11px; }
+.prediction-disclaimer p { font-size: 10px; line-height: 1.55; margin: 5px 0 0; }
 
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
