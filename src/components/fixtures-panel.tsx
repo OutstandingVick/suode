@@ -89,7 +89,15 @@ export function FixturesPanel() {
           <span className="section-kicker">Live API-Football data</span>
           <h2>Fixtures</h2>
         </div>
-        <span className="fixture-count">{filteredFixtures.length} matches</span>
+        <div className="fixture-heading-meta">
+          {state.kind === "ready" && state.data.quota.dailyRemaining !== null ? (
+            <span className="quota-pill" title="API-Football requests remaining today">
+              API quota: {state.data.quota.dailyRemaining}
+              {state.data.quota.dailyLimit !== null ? ` / ${state.data.quota.dailyLimit}` : ""}
+            </span>
+          ) : null}
+          <span className="fixture-count">{filteredFixtures.length} matches</span>
+        </div>
       </div>
 
       <div className="fixture-filters" aria-label="Fixture filters">
@@ -126,6 +134,12 @@ export function FixturesPanel() {
             </article>
           ))}
         </div>
+      ) : null}
+      {state.kind === "ready" && state.data.quota.minuteRemaining !== null ? (
+        <p className="quota-note">
+          {state.data.quota.minuteRemaining}
+          {state.data.quota.minuteLimit !== null ? ` of ${state.data.quota.minuteLimit}` : ""} requests available this minute. Fixture data is cached for five minutes.
+        </p>
       ) : null}
     </section>
   );
