@@ -22,6 +22,10 @@ export type ApiFootballResult<T> = {
   quota: ApiFootballQuota;
 };
 
+type ApiFootballRequestOptions = {
+  cacheSeconds?: number;
+};
+
 type ApiFootballEnvelope<T> = {
   errors: Record<string, string> | string[];
   paging: ApiFootballPaging;
@@ -56,6 +60,7 @@ function errorMessage(errors: ApiFootballEnvelope<unknown>["errors"]): string | 
 export async function apiFootballGet<T>(
   endpoint: string,
   params: Record<string, string | number | undefined> = {},
+  options: ApiFootballRequestOptions = {},
 ): Promise<ApiFootballResult<T>> {
   const url = new URL(`${API_FOOTBALL_BASE_URL}/${endpoint.replace(/^\/+/, "")}`);
 
@@ -67,7 +72,9 @@ export async function apiFootballGet<T>(
     headers: {
       "x-apisports-key": getApiFootballKey(),
     },
-    cache: "no-store",
+    ...(options.cacheSeconds
+      ? { next: { revalidate: options.cacheSeconds } }
+      : { cache: "no-store" as const }),
   });
 
   let payload: ApiFootballEnvelope<T>;

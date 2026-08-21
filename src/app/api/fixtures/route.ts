@@ -1,5 +1,9 @@
 import { ApiFootballError } from "@/lib/server/api-football";
-import { dateInAppTimezone, getFixturesForDate } from "@/lib/server/fixtures";
+import {
+  dateInAppTimezone,
+  FIXTURE_CACHE_SECONDS,
+  getFixturesForDate,
+} from "@/lib/server/fixtures";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -13,7 +17,9 @@ export async function GET(request: Request) {
     }
 
     return Response.json(await getFixturesForDate(date), {
-      headers: { "Cache-Control": "no-store" },
+      headers: {
+        "Cache-Control": `private, max-age=${FIXTURE_CACHE_SECONDS}`,
+      },
     });
   } catch (error) {
     const status = error instanceof ApiFootballError && error.status === 429 ? 429 : 502;
