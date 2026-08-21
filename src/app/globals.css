@@ -146,6 +146,7 @@ button { cursor: pointer; }
 .stat-card strong { font-size: 22px; letter-spacing: -.04em; }
 .stat-card small { color: #93a098; font-size: 9px; margin-top: 5px; }
 .stat-card .ready-text { color: #519025; font-size: 16px; }
+.stat-card .setup-text { color: #9d6b1f; font-size: 13px; }
 
 .research-panel {
   background:
@@ -211,6 +212,35 @@ button { cursor: pointer; }
 .preview-note { color: #8b9890; font-size: 9px; margin: 11px 2px 0; }
 .mobile-nav { display: none; }
 
+.fixtures-section { margin: 0 auto; max-width: 1360px; }
+.fixtures-heading { align-items: center; }
+.fixture-heading-meta { align-items: center; display: flex; gap: 8px; }
+.fixture-count { background: #e6eee8; border-radius: 999px; color: #3d6a51; font-size: 10px; font-weight: 800; padding: 7px 11px; }
+.quota-pill { background: #fff3d9; border: 1px solid #eed8a9; border-radius: 999px; color: #8a651f; font-size: 10px; font-weight: 800; padding: 7px 11px; }
+.quota-note { color: #87938c; font-size: 9px; margin: 10px 2px 0; text-align: right; }
+.fixture-filters { background: rgba(255,255,255,.88); border: 1px solid var(--line); border-radius: 16px; display: grid; gap: 12px; grid-template-columns: repeat(3,minmax(0,1fr)); margin-bottom: 12px; padding: 12px; }
+.fixture-filters label { color: #75827b; display: flex; flex-direction: column; font-size: 9px; font-weight: 800; gap: 6px; letter-spacing: .08em; text-transform: uppercase; }
+.fixture-filters input, .fixture-filters select { background: #f6f8f5; border: 1px solid #dfe5e0; border-radius: 9px; color: var(--ink); font: inherit; font-size: 11px; height: 38px; padding: 0 10px; text-transform: none; }
+.fixtures-list { display: flex; flex-direction: column; gap: 8px; }
+.fixture-row { align-items: center; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 14px; display: grid; gap: 16px; grid-template-columns: minmax(140px,1fr) minmax(300px,2fr) minmax(100px,.6fr); padding: 13px 16px; }
+.fixture-meta, .fixture-status { display: flex; flex-direction: column; gap: 4px; }
+.fixture-meta strong { font-size: 11px; }
+.fixture-meta span, .fixture-status span { color: #8a968f; font-size: 9px; }
+.fixture-teams { align-items: center; display: grid; font-size: 11px; gap: 10px; grid-template-columns: 1fr auto 1fr; text-align: right; }
+.fixture-teams span:last-child { text-align: left; }
+.fixture-teams b { background: #eef2ee; border-radius: 7px; font-size: 11px; padding: 6px 8px; }
+.fixture-status { border-left: 2px solid #bac5bd; padding-left: 10px; }
+.fixture-status.live { border-color: #72bd37; }
+.fixture-status.finished { border-color: #819087; }
+.fixture-status strong { font-size: 10px; }
+.fixture-state { align-items: center; background: rgba(255,255,255,.8); border: 1px dashed #cdd7d0; border-radius: 14px; color: #718078; display: flex; flex-direction: column; font-size: 12px; gap: 7px; padding: 30px; text-align: center; }
+.fixture-state strong { color: #45564c; font-size: 13px; }
+.fixture-state.error { background: #fff1ed; border-color: #e4b8aa; color: #9a4c39; }
+.fixture-state.error button { background: #9a4c39; border: 0; border-radius: 8px; color: white; font-size: 10px; font-weight: 800; margin-top: 5px; padding: 8px 12px; }
+.fixture-skeletons { display: flex; flex-direction: column; gap: 8px; }
+.fixture-skeletons span { animation: fixture-pulse 1.2s ease-in-out infinite alternate; background: linear-gradient(90deg,#e8ede9,#f5f7f5,#e8ede9); border: 1px solid var(--line); border-radius: 14px; display: block; height: 70px; }
+@keyframes fixture-pulse { from { opacity: .55; } to { opacity: 1; } }
+
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .signals-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -238,6 +268,12 @@ button { cursor: pointer; }
   .mobile-nav { align-items: center; background: rgba(255,255,255,.95); border-top: 1px solid var(--line); bottom: 0; display: grid; grid-template-columns: repeat(4,1fr); left: 0; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); position: fixed; right: 0; z-index: 30; }
   .mobile-nav button { align-items: center; background: transparent; border: 0; color: #89958e; display: flex; flex-direction: column; font-size: 8px; gap: 3px; padding: 5px; }
   .mobile-nav button.active { color: #2f6746; font-weight: 900; }
+  .fixture-filters { grid-template-columns: 1fr; }
+  .fixture-heading-meta { align-items: flex-end; flex-direction: column-reverse; }
+  .quota-pill, .fixture-count { font-size: 8px; padding: 6px 8px; }
+  .fixture-row { align-items: stretch; grid-template-columns: 1fr; gap: 10px; }
+  .fixture-teams { order: -1; }
+  .fixture-status { border-left: 0; border-top: 2px solid #bac5bd; flex-direction: row; justify-content: space-between; padding: 8px 0 0; }
 }
 
 @media (max-width: 420px) {
