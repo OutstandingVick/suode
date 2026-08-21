@@ -19,6 +19,7 @@ export type DeepResearchResponse = {
   venuePerformance: VenuePerformanceEvidence[];
   insights: ResearchInsight[];
   dataQuality: DataQuality;
+  warnings: string[];
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;

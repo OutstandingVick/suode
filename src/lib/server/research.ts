@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { DeepResearchResponse, InjuryEvidence, LineupEvidence, ResearchInsight, StandingEvidence, VenuePerformanceEvidence } from "@/lib/football/research";
-import { apiFootballGet } from "@/lib/server/api-football";
+import { apiFootballGet, type ApiFootballQuota, type ApiFootballResult } from "@/lib/server/api-football";
 import { getPrediction } from "@/lib/server/predictions";
 
 type StandingRow = {
@@ -41,46 +41,64 @@ type TeamStatistics = {
 };
 
 const RESEARCH_CACHE_SECONDS = 3600;
+const EMPTY_QUOTA: ApiFootballQuota = { dailyLimit: null, dailyRemaining: null, minuteLimit: null, minuteRemaining: null };
+
+type SafeResult<T> = { data: T | null; quota: ApiFootballQuota; warning: string | null };
+
+async function safeResearchCall<T>(label: string, request: Promise<ApiFootballResult<T>>): Promise<SafeResult<T>> {
+  try {
+    const result = await request;
+    return { data: result.data, quota: result.quota, warning: null };
+  } catch (error) {
+    return {
+      data: null,
+      quota: EMPTY_QUOTA,
+      warning: `${label}: ${error instanceof Error ? error.message : "data unavailable"}`,
+    };
+  }
+}
 
 export async function getDeepResearch(fixtureId: number): Promise<DeepResearchResponse> {
   const predictionResult = await getPrediction(fixtureId);
   const { prediction } = predictionResult;
   const [standingResult, injuryResult, lineupResult, homeStatsResult, awayStatsResult] = await Promise.all([
-    apiFootballGet<StandingLeague[]>(
+    safeResearchCall("Standings", apiFootballGet<StandingLeague[]>(
       "standings",
       { league: prediction.league.id, season: prediction.league.season },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
-    ),
-    apiFootballGet<InjuryRow[]>(
+    )),
+    safeResearchCall("Injuries", apiFootballGet<InjuryRow[]>(
       "injuries",
       { fixture: fixtureId },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
-    ),
-    apiFootballGet<LineupRow[]>(
+    )),
+    safeResearchCall("Line-ups", apiFootballGet<LineupRow[]>(
       "fixtures/lineups",
       { fixture: fixtureId },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
-    ),
-    apiFootballGet<TeamStatistics>(
+    )),
+    safeResearchCall("Home statistics", apiFootballGet<TeamStatistics>(
       "teams/statistics",
       { league: prediction.league.id, season: prediction.league.season, team: prediction.teams.home.id },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
-    ),
-    apiFootballGet<TeamStatistics>(
+    )),
+    safeResearchCall("Away statistics", apiFootballGet<TeamStatistics>(
       "teams/statistics",
       { league: prediction.league.id, season: prediction.league.season, team: prediction.teams.away.id },
       { cacheSeconds: RESEARCH_CACHE_SECONDS },
-    ),
+    )),
   ]);
-  const rows = standingResult.data.flatMap((entry) => entry.league.standings.flat());
+  const rows = standingResult.data?.flatMap((entry) => entry.league.standings.flat()) ?? [];
   const teamIds = new Set([prediction.teams.home.id, prediction.teams.away.id]);
   const standings = rows.filter((row) => teamIds.has(row.team.id)).map(toStandingEvidence);
-  const injuries = injuryResult.data.map(toInjuryEvidence);
-  const lineups = lineupResult.data.map(toLineupEvidence);
+  const injuries = injuryResult.data?.map(toInjuryEvidence) ?? [];
+  const lineups = lineupResult.data?.map(toLineupEvidence) ?? [];
   const venuePerformance = [
-    toVenuePerformance(homeStatsResult.data, "home"),
-    toVenuePerformance(awayStatsResult.data, "away"),
-  ];
+    homeStatsResult.data ? toVenuePerformance(homeStatsResult.data, "home") : null,
+    awayStatsResult.data ? toVenuePerformance(awayStatsResult.data, "away") : null,
+  ].filter((record): record is VenuePerformanceEvidence => record !== null);
+  const results = [standingResult, injuryResult, lineupResult, homeStatsResult, awayStatsResult];
+  const quotaSource = [...results].reverse().find((result) => result.quota.dailyRemaining !== null);
 
   return {
     fixtureId,
@@ -96,9 +114,10 @@ export async function getDeepResearch(fixtureId: number): Promise<DeepResearchRe
       venuePerformance,
       prediction.h2h.length,
     ),
+    warnings: results.flatMap((result) => result.warning ? [result.warning] : []),
     quota: {
-      dailyLimit: awayStatsResult.quota.dailyLimit ?? homeStatsResult.quota.dailyLimit ?? lineupResult.quota.dailyLimit,
-      dailyRemaining: awayStatsResult.quota.dailyRemaining ?? homeStatsResult.quota.dailyRemaining ?? lineupResult.quota.dailyRemaining,
+      dailyLimit: quotaSource?.quota.dailyLimit ?? null,
+      dailyRemaining: quotaSource?.quota.dailyRemaining ?? null,
     },
   };
 }

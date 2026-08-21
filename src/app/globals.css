@@ -309,6 +309,9 @@ button { cursor: pointer; }
 .quality-missing { background: #f6f8f6; border-radius: 9px; color: var(--muted); font-size: 9px; margin-bottom: 14px; padding: 9px 11px; }
 .quality-missing summary { cursor: pointer; font-weight: 800; }
 .quality-missing ul { line-height: 1.7; margin-bottom: 0; padding-left: 18px; }
+.research-warnings { background: #fff5e4; border: 1px solid #edd6a9; border-radius: 9px; color: #795b20; font-size: 8px; margin-bottom: 10px; padding: 10px; }
+.research-warnings strong { font-size: 9px; }
+.research-warnings ul { line-height: 1.6; margin: 5px 0 0; padding-left: 16px; }
 .deep-quota { color: var(--muted); font-size: 8px; margin: 13px 0 0; text-align: right; }
 .standing-grid { display: grid; gap: 10px; grid-template-columns: repeat(2,1fr); }
 .standing-grid article { background: #f3f7f3; border-radius: 13px; padding: 15px; }

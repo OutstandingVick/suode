@@ -32,6 +32,7 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
         <div className={`quality-badge ${state.data.dataQuality.grade.toLowerCase()}`}><span>{state.data.dataQuality.grade} data quality</span><strong>{state.data.dataQuality.score}/100</strong></div>
       </div>
       <p className="quality-note">This score measures evidence completeness, not the chance of a prediction winning.</p>
+      {state.data.warnings.length ? <div className="research-warnings" role="status"><strong>Some evidence is unavailable on the current API plan</strong><ul>{state.data.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul></div> : null}
       {state.data.dataQuality.missing.length ? <details className="quality-missing"><summary>Missing or limited evidence</summary><ul>{state.data.dataQuality.missing.map((item) => <li key={item}>{item}</li>)}</ul></details> : null}
       <div className="insight-list">{state.data.insights.map((insight, index) => (
         <article className={insight.tone} key={`${insight.label}-${index}`}><span>{insight.label}</span><p>{insight.text}</p></article>
