@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { PredictionResponse } from "@/lib/football/predictions";
 import { DeepResearchPanel } from "@/components/deep-research-panel";
+import { LocalTicketButton } from "@/components/local-ticket-button";
 
 type PredictionState =
   | { kind: "loading" }
@@ -75,6 +76,15 @@ export function PredictionPanel({ fixtureId }: { fixtureId: number }) {
           <small>Expected goals: {pick.goals.home ?? "–"} — {pick.goals.away ?? "–"}{pick.under_over ? ` · ${pick.under_over}` : ""}</small>
         </div>
       </section>
+
+      <LocalTicketButton match={{
+        fixtureId,
+        home: prediction.teams.home.name,
+        away: prediction.teams.away.name,
+        league: prediction.league.name,
+        prediction: pick.winner.name ?? "No clear winner",
+        advice: pick.advice,
+      }} />
 
       <section className="probability-card">
         <h3>Outcome comparison</h3>

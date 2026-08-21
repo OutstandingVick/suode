@@ -258,6 +258,8 @@ button { cursor: pointer; }
 .prediction-error { background: #fff1ed; border-color: #e4b8aa; }
 .prediction-error button { background: #9a4c39; border: 0; border-radius: 8px; color: white; font-size: 10px; font-weight: 800; margin-top: 14px; padding: 9px 13px; }
 .prediction-results { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.ticket-save-button { align-self: flex-end; background: white; border: 1px solid #9ab0a1; border-radius: 10px; color: #365f46; font-size: 10px; font-weight: 900; padding: 10px 13px; }
+.ticket-save-button.saved { background: #eaf7e2; border-color: #8eb770; color: #477b2b; }
 .prediction-summary { background: white; border: 1px solid var(--line); border-radius: 20px; display: grid; gap: 24px; grid-template-columns: 1.3fr 1fr; padding: 26px; }
 .prediction-label, .prediction-advice span, .form-evidence > span { color: #6f8b7b; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
 .prediction-summary h2 { font-size: 28px; letter-spacing: -.04em; margin: 8px 0; }
