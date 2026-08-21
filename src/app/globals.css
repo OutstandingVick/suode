@@ -146,6 +146,7 @@ button { cursor: pointer; }
 .stat-card strong { font-size: 22px; letter-spacing: -.04em; }
 .stat-card small { color: #93a098; font-size: 9px; margin-top: 5px; }
 .stat-card .ready-text { color: #519025; font-size: 16px; }
+.stat-card .setup-text { color: #9d6b1f; font-size: 13px; }
 
 .research-panel {
   background:

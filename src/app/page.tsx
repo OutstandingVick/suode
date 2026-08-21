@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 type IconName =
   | "research"
@@ -213,6 +213,25 @@ function SignalCard({ signal }: { signal: (typeof signals)[number] }) {
 export default function Home() {
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [apiConfigured, setApiConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/config/status", { cache: "no-store", signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Unable to read local configuration");
+        return response.json() as Promise<{ apiFootball: { configured: boolean } }>;
+      })
+      .then((data) => setApiConfigured(data.apiFootball.configured))
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== "AbortError") {
+          setApiConfigured(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
 
   function runResearch() {
     setNotice(
@@ -260,8 +279,13 @@ export default function Home() {
           </article>
           <article className="stat-card">
             <div className="stat-icon blue"><Icon name="chart" /></div>
-            <div><span>Data status</span><strong className="ready-text">Ready</strong></div>
-            <small>Awaiting API connection</small>
+            <div>
+              <span>Data status</span>
+              <strong className={apiConfigured ? "ready-text" : "setup-text"}>
+                {apiConfigured === null ? "Checking" : apiConfigured ? "Configured" : "Setup needed"}
+              </strong>
+            </div>
+            <small>{apiConfigured ? "API key is stored server-side" : "Add API_FOOTBALL_KEY locally"}</small>
           </article>
         </section>
 
