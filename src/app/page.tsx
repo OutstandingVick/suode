@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { FixturesPanel } from "@/components/fixtures-panel";
+import { BatchPredictionResults } from "@/components/batch-prediction-results";
+import type { BatchPredictionResponse } from "@/lib/football/batch-predictions";
 
 type IconName =
   | "research"
@@ -143,6 +145,8 @@ function Sidebar() {
 export default function Home() {
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
+  const [batchResult, setBatchResult] = useState<BatchPredictionResponse | null>(null);
+  const [researching, setResearching] = useState(false);
   const [apiConfigured, setApiConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -163,12 +167,29 @@ export default function Home() {
     return () => controller.abort();
   }, []);
 
-  function runResearch() {
-    setNotice(
-      query.trim()
-        ? "The research engine will be connected in Phase 2. Your workspace shell is ready."
-        : "Describe the matches or strategy you want to research first.",
-    );
+  async function runResearch() {
+    if (!query.trim()) {
+      setNotice("Describe the matches or strategy you want to research first.");
+      return;
+    }
+
+    setNotice("");
+    setBatchResult(null);
+    setResearching(true);
+    try {
+      const response = await fetch("/api/research/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const payload = await response.json() as BatchPredictionResponse | { error?: string };
+      if (!response.ok) throw new Error("error" in payload && payload.error ? payload.error : "Research failed.");
+      setBatchResult(payload as BatchPredictionResponse);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Research failed.");
+    } finally {
+      setResearching(false);
+    }
   }
 
   return (
@@ -229,13 +250,14 @@ export default function Home() {
             <textarea
               aria-label="Research request"
               onChange={(event) => { setQuery(event.target.value); setNotice(""); }}
+              onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === "Enter") void runResearch(); }}
               placeholder="e.g. Find low-risk home picks from today’s top leagues and avoid teams with weak recent form…"
               rows={3}
               value={query}
             />
             <div className="prompt-footer">
               <span><kbd>⌘</kbd><kbd>↵</kbd> to run</span>
-              <button onClick={runResearch}><Icon name="research" size={18} /> Run research</button>
+              <button disabled={researching} onClick={() => void runResearch()}><Icon name="research" size={18} /> {researching ? "Researching…" : "Run research"}</button>
             </div>
           </div>
           <div className="quick-row">
@@ -246,6 +268,8 @@ export default function Home() {
           </div>
           {notice ? <p className="notice" role="status">{notice}</p> : null}
         </section>
+
+        {batchResult ? <BatchPredictionResults result={batchResult} /> : null}
 
         <FixturesPanel />
       </main>
