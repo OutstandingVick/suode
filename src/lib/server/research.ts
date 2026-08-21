@@ -89,10 +89,50 @@ export async function getDeepResearch(fixtureId: number): Promise<DeepResearchRe
     lineups,
     venuePerformance,
     insights: buildInsights(standings, injuries, lineups, venuePerformance),
+    dataQuality: buildDataQuality(
+      standings,
+      injuries,
+      lineups,
+      venuePerformance,
+      prediction.h2h.length,
+    ),
     quota: {
       dailyLimit: awayStatsResult.quota.dailyLimit ?? homeStatsResult.quota.dailyLimit ?? lineupResult.quota.dailyLimit,
       dailyRemaining: awayStatsResult.quota.dailyRemaining ?? homeStatsResult.quota.dailyRemaining ?? lineupResult.quota.dailyRemaining,
     },
+  };
+}
+
+function buildDataQuality(
+  standings: StandingEvidence[],
+  injuries: InjuryEvidence[],
+  lineups: LineupEvidence[],
+  venue: VenuePerformanceEvidence[],
+  headToHeadCount: number,
+): DeepResearchResponse["dataQuality"] {
+  let score = 10; // A valid API prediction is available.
+  const missing: string[] = [];
+
+  if (standings.length >= 2) score += 25;
+  else missing.push("Complete standings for both teams");
+
+  if (venue.length >= 2 && venue.every((record) => record.played > 0)) score += 25;
+  else missing.push("Sufficient home and away match samples");
+
+  if (lineups.length >= 2 && lineups.every((lineup) => lineup.startingEleven.length >= 11)) score += 25;
+  else if (lineups.length) { score += 10; missing.push("A complete starting XI for both teams"); }
+  else missing.push("Confirmed or predicted line-ups");
+
+  if (headToHeadCount >= 3) score += 10;
+  else missing.push("At least three recent head-to-head matches");
+
+  if (injuries.length) score += 5;
+  else missing.push("Verified player-availability reports");
+
+  return {
+    score,
+    grade: score >= 80 ? "High" : score >= 55 ? "Medium" : "Low",
+    missing,
   };
 }
 

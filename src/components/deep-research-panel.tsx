@@ -27,7 +27,12 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
 
   return (
     <section className="deep-research-results">
-      <div className="deep-heading"><div><span className="prediction-label">Deep research</span><h3>League standings</h3></div><small>{state.data.quota.dailyRemaining ?? "–"} API requests remaining</small></div>
+      <div className="deep-heading">
+        <div><span className="prediction-label">Deep research</span><h3>League standings</h3></div>
+        <div className={`quality-badge ${state.data.dataQuality.grade.toLowerCase()}`}><span>{state.data.dataQuality.grade} data quality</span><strong>{state.data.dataQuality.score}/100</strong></div>
+      </div>
+      <p className="quality-note">This score measures evidence completeness, not the chance of a prediction winning.</p>
+      {state.data.dataQuality.missing.length ? <details className="quality-missing"><summary>Missing or limited evidence</summary><ul>{state.data.dataQuality.missing.map((item) => <li key={item}>{item}</li>)}</ul></details> : null}
       <div className="insight-list">{state.data.insights.map((insight, index) => (
         <article className={insight.tone} key={`${insight.label}-${index}`}><span>{insight.label}</span><p>{insight.text}</p></article>
       ))}</div>
@@ -58,6 +63,7 @@ export function DeepResearchPanel({ fixtureId }: { fixtureId: number }) {
           <small>{record.cleanSheets} clean sheets · failed to score {record.failedToScore} times</small>
         </article>
       ))}</div>
+      <p className="deep-quota">{state.data.quota.dailyRemaining ?? "–"} API requests remaining</p>
     </section>
   );
 }

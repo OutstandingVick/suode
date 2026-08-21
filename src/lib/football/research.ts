@@ -18,10 +18,17 @@ export type DeepResearchResponse = {
   lineups: LineupEvidence[];
   venuePerformance: VenuePerformanceEvidence[];
   insights: ResearchInsight[];
+  dataQuality: DataQuality;
   quota: {
     dailyLimit: number | null;
     dailyRemaining: number | null;
   };
+};
+
+export type DataQuality = {
+  score: number;
+  grade: "High" | "Medium" | "Low";
+  missing: string[];
 };
 
 export type ResearchInsight = {
