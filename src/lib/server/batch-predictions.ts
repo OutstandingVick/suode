@@ -29,13 +29,32 @@ function percentage(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function candidateScore(fixture: Fixture): number {
-  return fixture.fixture.status.short === "NS" ? 2 : 1;
+function predictionQuality(item: BatchPredictionItem): number {
+  const outcomes = [
+    percentage(item.percentages.home),
+    percentage(item.percentages.draw),
+    percentage(item.percentages.away),
+  ].sort((a, b) => b - a);
+
+  // Weight the leading probability first, then use its separation from the
+  // runner-up to distinguish equally strong headline percentages.
+  return outcomes[0] * 100 + (outcomes[0] - outcomes[1]);
 }
 
 export function isUpcomingFixture(fixture: Fixture, now = Date.now()): boolean {
   return upcomingStatuses.has(fixture.fixture.status.short)
     && fixture.fixture.timestamp * 1000 > now + KICKOFF_BUFFER_MS;
+}
+
+export function selectAcrossRemainingDay(fixtures: Fixture[], limit = MAX_ATTEMPTS): Fixture[] {
+  const ordered = [...fixtures].sort((a, b) => a.fixture.timestamp - b.fixture.timestamp);
+  if (ordered.length <= limit) return ordered;
+  if (limit <= 1) return ordered.slice(0, 1);
+
+  return Array.from({ length: limit }, (_, index) => {
+    const position = Math.round((index * (ordered.length - 1)) / (limit - 1));
+    return ordered[position];
+  });
 }
 
 export async function getBatchPredictions(query: string): Promise<BatchPredictionResponse> {
@@ -57,13 +76,12 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   if (cached) batchCache.delete(cacheKey);
 
   const fixtureResult = await getFixturesForDate(date);
-  const candidates = fixtureResult.fixtures
+  const eligibleFixtures = fixtureResult.fixtures
     // Some competitions have no live coverage and remain `NS` after kickoff.
     // Timestamp validation and the one-hour buffer keep stale or imminent
     // fixtures out of prediction batches.
-    .filter((fixture) => isUpcomingFixture(fixture))
-    .sort((a, b) => candidateScore(b) - candidateScore(a) || a.fixture.timestamp - b.fixture.timestamp)
-    .slice(0, Math.min(MAX_ATTEMPTS, Math.max(count * 2, count)));
+    .filter((fixture) => isUpcomingFixture(fixture));
+  const candidates = selectAcrossRemainingDay(eligibleFixtures);
 
   const predictions: BatchPredictionItem[] = [];
   let attempted = 0;
@@ -72,7 +90,6 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   let dailyLimit = fixtureResult.quota.dailyLimit;
 
   for (const fixture of candidates) {
-    if (predictions.length >= count) break;
     attempted += 1;
     try {
       const result = await getPrediction(fixture.fixture.id);
@@ -96,10 +113,11 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
     }
   }
 
-  predictions.sort((a, b) => b.strength - a.strength);
+  predictions.sort((a, b) => predictionQuality(b) - predictionQuality(a));
+  const rankedPredictions = predictions.slice(0, count);
   const generatedAt = Date.now();
-  const nextEligibilityCutoff = predictions.length
-    ? Math.min(...predictions.map(
+  const nextEligibilityCutoff = rankedPredictions.length
+    ? Math.min(...rankedPredictions.map(
       (item) => new Date(item.kickoff).getTime() - KICKOFF_BUFFER_MS,
     ))
     : Number.POSITIVE_INFINITY;
@@ -109,15 +127,15 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
     requested: count,
     attempted,
     unavailable,
-    predictions,
+    predictions: rankedPredictions,
     cached: false,
     generatedAt: new Date(generatedAt).toISOString(),
     freshUntil: new Date(expiresAt).toISOString(),
     quota: { dailyLimit, dailyRemaining },
     warning: capped
       ? `Suode limits one batch to ${MAX_PREDICTIONS} matches to protect the free API quota.`
-      : predictions.length < count
-        ? `Only ${predictions.length} of ${count} requested predictions were available within the ${MAX_ATTEMPTS}-fixture safety limit.`
+      : rankedPredictions.length < count
+        ? `Only ${rankedPredictions.length} of ${count} requested predictions were available within the ${MAX_ATTEMPTS}-fixture day-wide safety sample.`
         : null,
   };
   batchCache.set(cacheKey, { expiresAt, response });
