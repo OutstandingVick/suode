@@ -26,7 +26,7 @@ export function BatchPredictionResults({ result }: { result: BatchPredictionResp
         <div><span className="section-kicker">Research results</span><h2>{result.predictions.length} of {result.requested} requested predictions</h2></div>
         <div><strong>{result.quota.dailyRemaining ?? "–"}</strong><span>API requests left</span></div>
       </div>
-      <p className="batch-meta">Checked {result.attempted} fixtures · {result.unavailable} unavailable · {result.cached ? "served from fresh cache" : "newly generated"} · refreshes by {freshness(result.freshUntil)} or the next kickoff</p>
+      <p className="batch-meta">Checked {result.attempted} fixtures · {result.unavailable} unavailable · {result.cached ? "served from fresh cache" : "newly generated"} · refreshes by {freshness(result.freshUntil)} or one hour before the next kickoff</p>
       {result.warning ? <p className="batch-warning">{result.warning}</p> : null}
       {result.predictions.length ? <div className="batch-grid">{result.predictions.map((item, index) => {
         const scheduled = kickoff(item.kickoff);
