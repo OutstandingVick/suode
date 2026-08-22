@@ -9,6 +9,7 @@ const DEFAULT_PREDICTIONS = 5;
 const MAX_PREDICTIONS = 10;
 const MAX_ATTEMPTS = 10;
 const BATCH_CACHE_MS = 5 * 60 * 1000;
+const KICKOFF_BUFFER_MS = 60 * 60 * 1000;
 const upcomingStatuses = new Set(["NS", "TBD"]);
 
 type CachedBatch = { expiresAt: number; response: BatchPredictionResponse };
@@ -34,7 +35,7 @@ function candidateScore(fixture: Fixture): number {
 
 export function isUpcomingFixture(fixture: Fixture, now = Date.now()): boolean {
   return upcomingStatuses.has(fixture.fixture.status.short)
-    && fixture.fixture.timestamp * 1000 > now;
+    && fixture.fixture.timestamp * 1000 > now + KICKOFF_BUFFER_MS;
 }
 
 export async function getBatchPredictions(query: string): Promise<BatchPredictionResponse> {
@@ -47,7 +48,9 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   if (
     cached
     && cached.expiresAt > now
-    && cached.response.predictions.every((item) => new Date(item.kickoff).getTime() > now)
+    && cached.response.predictions.every(
+      (item) => new Date(item.kickoff).getTime() > now + KICKOFF_BUFFER_MS,
+    )
   ) {
     return { ...cached.response, cached: true };
   }
@@ -56,7 +59,8 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
   const fixtureResult = await getFixturesForDate(date);
   const candidates = fixtureResult.fixtures
     // Some competitions have no live coverage and remain `NS` after kickoff.
-    // Timestamp validation prevents those stale statuses from entering a batch.
+    // Timestamp validation and the one-hour buffer keep stale or imminent
+    // fixtures out of prediction batches.
     .filter((fixture) => isUpcomingFixture(fixture))
     .sort((a, b) => candidateScore(b) - candidateScore(a) || a.fixture.timestamp - b.fixture.timestamp)
     .slice(0, Math.min(MAX_ATTEMPTS, Math.max(count * 2, count)));
@@ -94,10 +98,12 @@ export async function getBatchPredictions(query: string): Promise<BatchPredictio
 
   predictions.sort((a, b) => b.strength - a.strength);
   const generatedAt = Date.now();
-  const nextKickoff = predictions.length
-    ? Math.min(...predictions.map((item) => new Date(item.kickoff).getTime()))
+  const nextEligibilityCutoff = predictions.length
+    ? Math.min(...predictions.map(
+      (item) => new Date(item.kickoff).getTime() - KICKOFF_BUFFER_MS,
+    ))
     : Number.POSITIVE_INFINITY;
-  const expiresAt = Math.min(generatedAt + BATCH_CACHE_MS, nextKickoff);
+  const expiresAt = Math.min(generatedAt + BATCH_CACHE_MS, nextEligibilityCutoff);
   const response: BatchPredictionResponse = {
     query: normalizedQuery,
     requested: count,
